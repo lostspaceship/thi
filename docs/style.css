@@ -20,12 +20,6 @@
     --tap-target: 44px;
 }
 
-@property --angle {
-    syntax: '<angle>';
-    inherits: false;
-    initial-value: 0deg;
-}
-
 body {
     font-family: "Source Sans Pro", sans-serif;
     margin: 0;
@@ -129,12 +123,8 @@ body {
 .status-orange { background-color: orange; }
 
 .status-red {
-    background: conic-gradient(from var(--angle), #ff4b4b, #8b0000, #ff4b4b);
-    animation: spin-angle 5s linear infinite, pulse-shadow 2s ease-in-out infinite;
-}
-
-@keyframes spin-angle {
-    to { --angle: 360deg; }
+    background-color: red;
+    animation: pulse-shadow 2s ease-in-out infinite;
 }
 
 @keyframes pulse-shadow {

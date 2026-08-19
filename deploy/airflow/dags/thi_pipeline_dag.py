@@ -84,7 +84,7 @@ git "${{GIT_AUTH_ARGS[@]}}" pull --ff-only
         env={"GH_PAT": secrets.get("GH_PAT", "")},
         bash_command=f"""
 set -uo pipefail
-cd "{repo_dir}"
+cd "{repo_dir}
 git config user.email "airflow@dairycampus.local"
 git config user.name "THI Airflow"
 {GIT_AUTH_ARGS}

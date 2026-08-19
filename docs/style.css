@@ -1,9 +1,29 @@
+/* ==========================================================================
+   Cross-document View Transitions (native multi-page navigation animation)
+   Must stay a top-level rule. Browsers without support just ignore it and
+   navigation falls back to a normal page load — no JS needed either way.
+   ========================================================================== */
+@view-transition {
+    navigation: auto;
+}
+
 :root {
     --primary-color: #ff4b4b;
     --bg-color: #ffffff;
     --sidebar-bg: #f0f2f6;
     --text-color: #31333f;
     --border-color: #e6eaf1;
+    --ease-standard: cubic-bezier(.4, 0, .2, 1);
+    /* Spring-ish easing via the linear() function (2024/2025 CSS) for micro-interactions */
+    --ease-spring: linear(0, 0.09 3.4%, 0.32 8.5%, 0.66 14.8%, 0.9 19.6%, 1.04 24.6%, 1.09 28.7%, 1.07 33.9%, 1.02 39.6%, 0.99 46.3%, 1 65%, 1 100%);
+    --nav-height: 72px;
+    --tap-target: 44px;
+}
+
+@property --angle {
+    syntax: '<angle>';
+    inherits: false;
+    initial-value: 0deg;
 }
 
 body {
@@ -12,14 +32,17 @@ body {
     display: block;
     color: var(--text-color);
     background-color: var(--bg-color);
+    -webkit-text-size-adjust: 100%;
 }
 
 /* Content */
 .content {
-    margin-left: 0px;
+    margin: 0 auto;
     padding: 20px;
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
     max-width: 800px;
     width: 100%;
+    box-sizing: border-box;
 }
 
 .title {
@@ -31,20 +54,144 @@ body {
     color: red;
 }
 
+/* Nav — kept as its own view-transition group so it morphs smoothly
+   between pages instead of crossfading with the rest of the content. */
+.navbar {
+    view-transition-name: site-nav;
+    min-height: var(--nav-height);
+    padding-top: calc(.75rem + env(safe-area-inset-top));
+    padding-bottom: .75rem;
+    padding-left: max(1.25rem, env(safe-area-inset-left));
+    padding-right: max(1.25rem, env(safe-area-inset-right));
+}
+
+.navbar-toggler {
+    min-width: var(--tap-target);
+    min-height: var(--tap-target);
+}
+
+.navbar-nav {
+    gap: .25rem;
+}
+
+.navbar-nav .nav-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-height: var(--tap-target);
+    padding-top: .5rem;
+    padding-bottom: .5rem;
+    transition: color .2s var(--ease-standard);
+}
+
+.navbar-nav .nav-link span {
+    position: relative;
+}
+
+.navbar-nav .nav-link span::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -4px;
+    height: 2px;
+    background: var(--primary-color);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform .3s var(--ease-spring);
+}
+
+.navbar-nav .nav-link:hover span::after,
+.navbar-nav .nav-link[aria-current="page"] span::after {
+    transform: scaleX(1);
+}
+
+.navbar-nav .nav-link[aria-current="page"] {
+    color: #fff;
+    font-weight: 600;
+}
+
 /* Status Box */
 .status-box {
-    padding: 20px;
-    border-radius: 10px;
+    padding: clamp(14px, 4vw, 20px);
+    border-radius: 14px;
     text-align: center;
-    font-size: 24px;
+    font-size: clamp(18px, 5.5vw, 24px);
     font-weight: 700;
     color: white;
-    margin-bottom: 2rem;
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 10px 24px -8px rgba(0, 0, 0, .3);
+    transition: background-color .4s var(--ease-standard), box-shadow .4s var(--ease-standard), transform .2s var(--ease-standard);
 }
 
 .status-green { background-color: green; }
 .status-orange { background-color: orange; }
-.status-red { background-color: red; }
+
+.status-red {
+    background: conic-gradient(from var(--angle), #ff4b4b, #8b0000, #ff4b4b);
+    animation: spin-angle 5s linear infinite, pulse-shadow 2s ease-in-out infinite;
+}
+
+@keyframes spin-angle {
+    to { --angle: 360deg; }
+}
+
+@keyframes pulse-shadow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, .45); }
+    50% { box-shadow: 0 0 0 14px rgba(255, 0, 0, 0); }
+}
+
+/* Entrance animation for the main content blocks on first paint.
+   @starting-style (2024/2025 CSS) lets the browser animate FROM this
+   state on first render, without needing a JS-added class. */
+.status-box,
+#chart-container,
+.table-container,
+.buienradar,
+.about-content,
+.register-content {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity .6s var(--ease-standard), transform .6s var(--ease-standard);
+}
+
+#chart-container {
+    display: flex;
+    justify-content: center;
+    transition-delay: .05s;
+    cursor: zoom-in;
+    border-radius: 10px;
+    transition: opacity .6s var(--ease-standard), transform .6s var(--ease-standard), box-shadow .2s var(--ease-standard);
+}
+
+#chart-container:hover,
+#chart-container:focus-visible {
+    box-shadow: 0 8px 22px -10px rgba(0, 0, 0, .3);
+    outline: none;
+}
+
+#chart-container:active {
+    transform: scale(.99);
+}
+
+#thi-chart {
+    width: 100%;
+}
+.table-container { transition-delay: .15s; }
+.buienradar { transition-delay: .25s; }
+
+@starting-style {
+    .status-box,
+    #chart-container,
+    .table-container,
+    .buienradar,
+    .about-content,
+    .register-content {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+}
 
 /* Form Styles */
 .st-form {
@@ -72,18 +219,47 @@ body {
     border-radius: 5px;
 }
 
+.button-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 4px;
+}
+
 .st-button {
     background-color: var(--primary-color);
     color: white;
     padding: 10px 20px;
+    min-height: var(--tap-target);
     border: none;
     border-radius: 5px;
     cursor: pointer;
     font-weight: bold;
+    transition: transform .35s var(--ease-spring), background-color .2s var(--ease-standard), box-shadow .2s var(--ease-standard);
 }
 
-.st-button:hover {
+.st-button:hover:not(:disabled) {
     background-color: #e03a3a;
+    box-shadow: 0 4px 14px rgba(255, 75, 75, .35);
+}
+
+.st-button:active:not(:disabled) {
+    transform: scale(.96);
+}
+
+.st-button:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+
+.st-button-secondary {
+    background-color: #f0f2f6;
+    color: var(--text-color);
+}
+
+.st-button-secondary:hover:not(:disabled) {
+    background-color: #e2e6ee;
+    box-shadow: 0 4px 14px rgba(49, 51, 63, .12);
 }
 
 /* Table */
@@ -107,28 +283,236 @@ th {
     background-color: #f0f2f6;
 }
 
+td {
+    font-variant-numeric: tabular-nums;
+}
+
+tbody tr {
+    transition: background-color .2s var(--ease-standard);
+}
+
+tbody tr:nth-child(even) {
+    background-color: #fafbfd;
+}
+
+tbody tr:hover {
+    background-color: #f0f4ff;
+}
+
+tbody tr.row-alert {
+    background-color: #fff1f1;
+}
+
+tbody tr.row-alert:hover {
+    background-color: #ffe4e4;
+}
+
+tbody tr.row-alert td:last-child {
+    color: #c62828;
+    font-weight: 600;
+}
+
 /* About */
 .about-img {
     max-width: 100%;
     border-radius: 10px;
     margin-bottom: 20px;
+    transition: transform .4s var(--ease-spring);
+}
+
+.about-img:hover {
+    transform: scale(1.02) rotate(-.5deg);
+}
+
+.buienradar {
+    margin-top: 1.5rem;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.buienradar iframe {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    height: auto;
+    border: none;
 }
 
 .footer {
     margin-top: 3rem;
     font-size: 0.8rem;
     color: #666;
+    text-align: center;
     border-top: 1px solid var(--border-color);
     padding-top: 10px;
 }
 
 /* Mobile responsive */
 @media (max-width: 768px) {
-    body {
-        flex-direction: column;
-    }
     .content {
         margin-left: 0;
+        padding: 12px;
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
+    }
+
+    /* Station picker: full-width row inside the collapsed nav menu */
+    .station-picker {
+        width: 100%;
+        margin-top: .5rem;
+        padding-top: .5rem;
+        border-top: 1px solid rgba(255, 255, 255, .15);
+    }
+
+    .station-picker #station-select {
+        flex: 1;
+        min-height: var(--tap-target);
+    }
+
+    /* Keep the heat-stress status glanceable while scrolling the table,
+       like a persistent app status bar, floating with a gap below the nav
+       instead of sitting flush against it. */
+    .status-box {
+        position: sticky;
+        top: calc(var(--nav-height) + 10px);
+        z-index: 1010;
+    }
+
+    #chart-container {
+        margin-left: -12px;
+        margin-right: -12px;
+    }
+
+    .table-container {
+        margin-top: 1.25rem;
+    }
+
+    .button-row {
+        flex-direction: column;
+    }
+
+    .button-row .st-button {
+        width: 100%;
+    }
+
+    .buienradar iframe {
+        aspect-ratio: 1 / 1;
+    }
+}
+
+/* Custom cross-document view-transition animation: a soft slide + fade
+   instead of the browser default crossfade. */
+::view-transition-old(root) {
+    animation: vt-fade-out .35s var(--ease-standard) both;
+}
+
+::view-transition-new(root) {
+    animation: vt-fade-in .35s var(--ease-standard) both;
+}
+
+@keyframes vt-fade-out {
+    to { opacity: 0; transform: translateY(-10px); }
+}
+
+@keyframes vt-fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+}
+
+/* Click-to-enlarge chart modal */
+.chart-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s var(--ease-standard);
+}
+
+.chart-modal.is-open {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.chart-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(20, 22, 26, .65);
+}
+
+.chart-modal-content {
+    position: relative;
+    background: var(--bg-color);
+    border-radius: 16px;
+    padding: 44px 20px 20px;
+    width: 100%;
+    max-width: 1000px;
+    max-height: 90vh;
+    box-shadow: 0 30px 60px -20px rgba(0, 0, 0, .5);
+    transform: scale(.94);
+    transition: transform .3s var(--ease-spring);
+}
+
+.chart-modal.is-open .chart-modal-content {
+    transform: scale(1);
+}
+
+.chart-modal-scroll {
+    max-height: calc(90vh - 64px);
+    overflow: auto;
+}
+
+.chart-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    min-width: var(--tap-target);
+    min-height: var(--tap-target);
+    border: none;
+    border-radius: 50%;
+    background: #f0f2f6;
+    color: var(--text-color);
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color .2s var(--ease-standard), transform .3s var(--ease-spring);
+}
+
+.chart-modal-close:hover {
+    background: #e2e6ee;
+}
+
+.chart-modal-close:active {
+    transform: scale(.9);
+}
+
+@media (max-width: 768px) {
+    .chart-modal {
         padding: 10px;
+    }
+
+    .chart-modal-content {
+        padding: 40px 10px 10px;
+    }
+}
+
+#thi-chart-large {
+    width: 100%;
+}
+
+/* Respect reduced-motion preference everywhere, including view transitions */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: .001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .001ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation: none !important;
     }
 }

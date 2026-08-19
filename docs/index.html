@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#212529">
     <title>THI Heatstress App</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
@@ -14,7 +15,7 @@
 <body>
     <nav class="navbar navbar-expand-md navbar-dark bg-dark sticky-top">
         <div class="container-fluid">
-            <a class="navbar-brand fw-bold" href="#">
+            <a class="navbar-brand fw-bold" href="index.html">
                 <span style="color:#e74c3c;">HEAT</span>stress
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
@@ -22,14 +23,13 @@
             </button>
             <div class="collapse navbar-collapse" id="mainNav">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item"><a class="nav-link" href="#" onclick="showPage('home')">Dashboard</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#" onclick="showPage('register')">Inschrijven</a>
-                    </li>
-                    <li class="nav-item"><a class="nav-link" href="#" onclick="showPage('about')">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="index.html" aria-current="page"><span>Dashboard</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="register.html"><span>Inschrijven</span></a></li>
+                    <li class="nav-item"><a class="nav-link" href="about.html"><span>About</span></a></li>
                 </ul>
-                <div class="d-flex align-items-center gap-2">
+                <div class="d-flex align-items-center gap-2 station-picker">
                     <label for="station-select" class="text-white mb-0 small">Weerstation:</label>
-                    <select id="station-select" class="form-select form-select-sm" style="min-width:160px"
+                    <select id="station-select" class="form-select form-select-sm"
                         onchange="loadStation(this.value)"></select>
                 </div>
             </div>
@@ -37,13 +37,12 @@
     </nav>
 
     <main class="content">
-        <!-- HOME PAGE -->
         <section id="page-home">
             <div id="status-box" class="status-box">
                 Laden...
             </div>
 
-            <div id="chart-container">
+            <div id="chart-container" role="button" tabindex="0" aria-label="Vergroot de grafiek">
                 <div id="thi-chart"></div>
             </div>
 
@@ -66,32 +65,7 @@
             </div>
 
             <div class="buienradar">
-                <iframe id="buienradar-iframe" src="" width="100%" height="512" frameborder="0" scrolling="no"></iframe>
-            </div>
-        </section>
-
-        <!-- REGISTER PAGE -->
-        <section id="page-register" style="display: none;">
-            <h2>📲 Meldingen ontvangen</h2>
-            <p>Klik op de knop om deze browser te abonneren op meldingen.</p>
-            <button id="subscribe-button" class="st-button" type="button">Aanmelden voor meldingen</button>
-            <button id="unsubscribe-button" class="st-button" type="button"
-                style="margin-left: 12px;">Afmelden voor meldingen</button>
-            <p id="status">Status: klaar</p>
-        </section>
-
-        <!-- ABOUT PAGE -->
-        <section id="page-about" style="display: none;">
-            <h2>🐄 Heatstress App 🛠️</h2>
-            <div class="about-content">
-                <img src="images/cowboy.png" alt="The Dairy Campus Cowboys" class="about-img">
-                <p>The Dairy <b style="color:red">Heat</b>stress App was forged in the digital frontier by the Dairy
-                    Campus Cowboys.</p>
-                <p>⭐ Anna, our shining star, tolerated zero 'fluff' on the Frontier.</p>
-                <p>🤠 Paul, the old sherrif supplied the vital and safe context.</p>
-                <p>💻 Bert, responsible for disrupting hacks, beers & bytes</p>
-                <p>The Dairy Campus Cowboys engineered this application to deliver heat stress insights, without the
-                    fluff.</P>
+                <iframe id="buienradar-iframe" src="" frameborder="0" scrolling="no" loading="lazy"></iframe>
             </div>
         </section>
 
@@ -100,8 +74,18 @@
         </footer>
     </main>
 
+    <div id="chart-modal" class="chart-modal" aria-hidden="true">
+        <div class="chart-modal-backdrop" id="chart-modal-backdrop"></div>
+        <div class="chart-modal-content" role="dialog" aria-modal="true" aria-label="Vergrote grafiek">
+            <button type="button" class="chart-modal-close" id="chart-modal-close" aria-label="Sluiten">✕</button>
+            <div class="chart-modal-scroll">
+                <div id="thi-chart-large"></div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="script.js"></script>
+    <script src="js/dashboard.js"></script>
 </body>
 
 </html>

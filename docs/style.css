@@ -48,6 +48,15 @@ body {
     color: red;
 }
 
+.page-title {
+    font-size: clamp(1.75rem, 4vw, 2.25rem);
+    font-weight: 700;
+    margin-bottom: 1.25rem;
+    padding-bottom: .5rem;
+    border-bottom: 3px solid var(--primary-color);
+    display: inline-block;
+}
+
 /* Nav — kept as its own view-transition group so it morphs smoothly
    between pages instead of crossfading with the rest of the content. */
 .navbar {

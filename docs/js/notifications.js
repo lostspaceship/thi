@@ -5,6 +5,7 @@ const PUBLIC_VAPID_KEY = 'BFLPEiu4aojiVWR_03OhHLz2nVRoRij-kQOtFAnZATXOINM1LiCNXF
 
 const subscribeButton = document.getElementById('subscribe-button');
 const unsubscribeButton = document.getElementById('unsubscribe-button');
+const testPermissionButton = document.getElementById('test-permission-button'); // TEST ONLY — remove with block in register.html
 const statusElement = document.getElementById('status');
 
 let serviceWorkerRegistration;
@@ -233,6 +234,30 @@ async function unsubscribeFromNotifications() {
     setStatus('Klaar. Je bent afgemeld voor meldingen.');
 }
 
+// TEST ONLY — requests permission and shows a local notification, bypassing
+// push subscription / Supabase entirely. Remove this function, its listener
+// below, and the #test-permission-button block in register.html when done.
+async function testNotificationPermission() {
+    if (!('Notification' in window)) {
+        throw new Error('Notifications worden niet ondersteund in deze browser.');
+    }
+
+    setStatus(`Huidige permissie: ${Notification.permission}. Toestemming aanvragen...`);
+    const permission = await Notification.requestPermission();
+    setStatus(`Permissie: ${permission}.`);
+
+    if (permission !== 'granted') {
+        return;
+    }
+
+    const registration = serviceWorkerRegistration || await registerServiceWorker();
+    await registration.showNotification('Test melding', {
+        body: 'Dit is een testmelding om permissies te controleren.',
+        data: { url: '/thi' },
+    });
+    setStatus('Permissie: granted. Testmelding verstuurd.');
+}
+
 async function initNotifications() {
     try {
         serviceWorkerRegistration = await registerServiceWorker();
@@ -268,6 +293,21 @@ async function initNotifications() {
             unsubscribeButton.disabled = false;
         }
     });
+
+    // TEST ONLY — remove with testNotificationPermission() above
+    if (testPermissionButton) {
+        testPermissionButton.addEventListener('click', async () => {
+            testPermissionButton.disabled = true;
+            try {
+                await testNotificationPermission();
+            } catch (error) {
+                setStatus(error.message);
+                console.error('[test-permission-button click] test failed', error);
+            } finally {
+                testPermissionButton.disabled = false;
+            }
+        });
+    }
 }
 
 void initNotifications();
